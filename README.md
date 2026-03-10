@@ -69,8 +69,8 @@ The `Transformations/Astra/` folder contains append tables that UNION ALL the pe
 
 | Environment | Workspace | Catalog | Deployed Via |
 |-------------|-----------|---------|-------------|
-| Dev | [adb-403...14](https://adb-4035884369038194.14.azuredatabricks.net) | `silver_astra_dev` / `silver_opco_dev` | `databricks bundle deploy -t dev` |
-| Prod | [adb-324...13](https://adb-3248408131820553.13.azuredatabricks.net) | `silver_astra` / `silver_opco` | PR merge to `prod` (GitHub Actions) |
+| Dev | Set in `databricks.yml` | `silver_astra_dev` / `silver_opco_dev` | `databricks bundle deploy -t dev` |
+| Prod | Set in `databricks.yml` | `silver_astra` / `silver_opco` | PR merge to `prod` (GitHub Actions) |
 
 ## Branch Strategy
 
