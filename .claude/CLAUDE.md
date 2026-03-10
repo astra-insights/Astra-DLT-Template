@@ -17,31 +17,26 @@ The analyst needs these installed before starting:
 
 ### 2. Databricks Authentication
 
-The analyst needs access tokens for both workspaces. Walk them through creating these:
+The analyst needs an access token for their Databricks workspace. Walk them through creating one:
 
-**Dev Workspace** (`https://adb-4035884369038194.14.azuredatabricks.net`):
-1. Log into the Dev workspace URL above
+**Ask the analyst for their workspace URL first.** It will look like `https://adb-XXXX.XX.azuredatabricks.net`.
+
+1. Log into their workspace URL
 2. Click your profile icon (top-right) → Settings → Developer → Access tokens
-3. Click "Generate new token", name it `claude-dev`, set expiration (90 days recommended)
+3. Click "Generate new token", name it `claude-code`, set expiration (90 days recommended)
 4. Copy the token immediately (it won't be shown again)
 
-**Prod Workspace** (`https://adb-3248408131820553.13.azuredatabricks.net`):
-1. Same steps as above, but on the Prod workspace URL
-2. Name the token `claude-prod`
-
-**Configure the Databricks CLI profiles:**
+**Configure the Databricks CLI profile:**
 ```bash
 # Create or edit ~/.databrickscfg
 cat <<EOF >> ~/.databrickscfg
 [dev]
-host = https://adb-4035884369038194.14.azuredatabricks.net
-token = <DEV_TOKEN_HERE>
-
-[prod]
-host = https://adb-3248408131820553.13.azuredatabricks.net
-token = <PROD_TOKEN_HERE>
+host = <WORKSPACE_URL_HERE>
+token = <TOKEN_HERE>
 EOF
 ```
+
+If the analyst has separate dev and prod workspaces, add a `[prod]` profile the same way.
 
 **Verify connection:**
 ```bash
@@ -58,14 +53,15 @@ The analyst needs GitHub access to the `astra-insights` org:
 
 ### 4. Repository Setup
 
-After cloning this template:
-1. **Rename the repo** — update `bundle.name` in `databricks.yml` to match your domain (e.g., `astra-accounts-receivable`)
-2. **Update pipeline config** — edit `databricks.yml` with your pipeline name, catalog, and schema
-3. **Deploy to dev** — run `databricks bundle deploy --target dev` to verify the connection works
-4. **Set up GitHub secrets** — in the repo's GitHub Settings → Secrets → Actions:
-   - `DATABRICKS_TOKEN_DEV` — your dev workspace token
-   - `DATABRICKS_TOKEN_PROD` — your prod workspace token
-   - Create two GitHub Environments: `dev` and `prod`, assign the secrets to each
+After creating a repo from this template:
+1. **Rename the bundle** — update `bundle.name` in `databricks.yml` to match your repo name
+2. **Set workspace URLs** — update the `host` values in `databricks.yml` targets to match your workspace(s)
+3. **Update pipeline config** — edit `databricks.yml` with your pipeline name, catalog, and schema
+4. **Deploy to dev** — run `databricks bundle deploy --target dev` to verify the connection works
+5. **Set up GitHub secrets** — in the repo's GitHub Settings → Secrets → Actions:
+   - `DATABRICKS_TOKEN_DEV` — your workspace token
+   - If you have a separate prod workspace, add `DATABRICKS_TOKEN_PROD` too
+   - Create GitHub Environments (`dev`, and `prod` if applicable), assign the secrets to each
 
 ### 5. VS Code Databricks Extension
 

@@ -42,7 +42,7 @@ resources:
 targets:
   dev:
     workspace:
-      host: https://adb-4035884369038194.14.azuredatabricks.net
+      host: https://adb-XXXXX.XX.azuredatabricks.net  # <-- UPDATE to your workspace URL
       profile: dev
     default: true
 
@@ -83,7 +83,7 @@ targets:
                 pipeline_id: "${resources.pipelines.my_pipeline.id}"  # <-- MUST match pipeline key
                 full_refresh: false
     workspace:
-      host: https://adb-3248408131820553.13.azuredatabricks.net
+      host: https://adb-XXXXX.XX.azuredatabricks.net  # <-- UPDATE to your prod workspace URL (or same as dev)
       profile: prod
     git:
       branch: prod
