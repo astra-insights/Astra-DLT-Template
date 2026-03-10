@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(databricks bundle *)",
+      "Bash(databricks auth *)",
+      "Bash(databricks clusters list *)",
+      "Bash(gh *)",
+      "Bash(git *)"
+    ],
+    "deny": [
+      "Bash(databricks bundle deploy -t prod*)"
+    ]
+  },
+  "mcpServers": {
+    "databricks-dev": {
+      "command": "databricks",
+      "args": ["mcp", "--profile", "dev"],
+      "disabled": true,
+      "_comment": "Enable after running 'databricks auth profiles' and confirming dev profile works. Provides SQL query access to the dev workspace."
+    },
+    "databricks-prod": {
+      "command": "databricks",
+      "args": ["mcp", "--profile", "prod"],
+      "disabled": true,
+      "_comment": "Enable after running 'databricks auth profiles' and confirming prod profile works. Use this for reconciliation queries."
+    }
+  }
+}

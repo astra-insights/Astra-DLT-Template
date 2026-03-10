@@ -1,0 +1,89 @@
+# ============================================================================
+# Databricks Asset Bundle Configuration
+# ============================================================================
+# UPDATE these values for your domain:
+#   1. bundle.name          — your repo name (e.g., astra-general-ledger)
+#   2. bundle.git.origin_url — your GitHub repo URL
+#   3. pipeline name/key    — descriptive pipeline identifier
+#   4. schema               — your DLT schema name
+#   5. email_recipients     — your team's notification list
+#   6. quartz_cron_expression — your preferred schedule
+# ============================================================================
+
+bundle:
+  name: astra-dlt-template  # <-- RENAME to your repo name
+  git:
+    origin_url: https://github.com/astra-insights/Astra-DLT-Template.git  # <-- UPDATE
+
+sync:
+  include:
+    - "Transformations/**"
+
+resources:
+  pipelines:
+    my_pipeline:  # <-- RENAME to your pipeline key (e.g., gl_pipeline, wip_pipeline)
+      name: "Astra DLT Template - Dev"  # <-- UPDATE display name
+      catalog: "silver_astra_dev"
+      schema: "my_domain"  # <-- UPDATE to your schema (e.g., general_ledger, accounts_receivable)
+      photon: true
+      serverless: true
+      continuous: false
+      development: false
+      channel: "CURRENT"
+      configuration:
+        "catalog_silver_opco": "silver_opco_dev"
+        "catalog_silver_astra": "silver_astra_dev"
+        "pipelines.maxFlowRetryAttempts": "0"
+        "pipelines.numUpdateRetryAttempts": "0"
+      libraries:
+        - glob:
+            include: "./Transformations/**"
+
+targets:
+  dev:
+    workspace:
+      host: https://adb-4035884369038194.14.azuredatabricks.net
+      profile: dev
+    default: true
+
+  prod:
+    resources:
+      pipelines:
+        my_pipeline:  # <-- MUST match the pipeline key above
+          name: "Astra DLT Template - Prod"  # <-- UPDATE display name
+          catalog: "silver_astra"
+          development: false
+          configuration:
+            "catalog_silver_opco": "silver_opco"
+            "catalog_silver_astra": "silver_astra"
+            "pipelines.maxFlowRetryAttempts": "0"
+            "pipelines.numUpdateRetryAttempts": "0"
+          notifications:
+            - email_recipients:
+                # <-- UPDATE with your team's email addresses
+                - ryan@astraservicepartners.com
+              alerts:
+                - on-update-failure
+                - on-flow-failure
+      jobs:
+        my_pipeline_scheduler:  # <-- RENAME to match your pipeline
+          name: "Astra DLT Template Scheduler - Prod"  # <-- UPDATE display name
+          email_notifications:
+            on_failure:
+              # <-- UPDATE with your team's email addresses
+              - ryan@astraservicepartners.com
+          schedule:
+            # Runs at :15 past each hour to allow bronze pipelines to complete first
+            quartz_cron_expression: "0 15 7-18 ? * MON-FRI"
+            timezone_id: "America/Chicago"
+          tasks:
+            - task_key: "run_pipeline"  # <-- UPDATE task key
+              max_retries: 0
+              pipeline_task:
+                pipeline_id: "${resources.pipelines.my_pipeline.id}"  # <-- MUST match pipeline key
+                full_refresh: false
+    workspace:
+      host: https://adb-3248408131820553.13.azuredatabricks.net
+      profile: prod
+    git:
+      branch: prod

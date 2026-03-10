@@ -1,0 +1,64 @@
+name: Deploy DLT Pipeline  # <-- UPDATE with your domain name
+
+on:
+  push:
+    branches: [dev, prod]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-dev:
+    if: github.ref == 'refs/heads/dev' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev')
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: databricks/setup-cli@main
+
+      - name: Create Databricks CLI config
+        run: |
+          cat <<EOF > ~/.databrickscfg
+          [dev]
+          host = https://adb-4035884369038194.14.azuredatabricks.net
+          token = ${{ secrets.DATABRICKS_TOKEN_DEV }}
+          EOF
+
+      - name: Deploy to Dev
+        run: databricks bundle deploy -t dev
+
+      - name: Run pipeline in Dev (single trigger)
+        run: databricks bundle run my_pipeline -t dev  # <-- UPDATE pipeline key
+
+  deploy-prod:
+    if: github.ref == 'refs/heads/prod' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod')
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - uses: actions/checkout@v4
+      - uses: databricks/setup-cli@main
+
+      - name: Create Databricks CLI config
+        run: |
+          cat <<EOF > ~/.databrickscfg
+          [prod]
+          host = https://adb-3248408131820553.13.azuredatabricks.net
+          token = ${{ secrets.DATABRICKS_TOKEN_PROD }}
+          EOF
+
+      - name: Deploy to Prod
+        run: databricks bundle deploy -t prod
+
+      - name: Run pipeline in Prod (single trigger)
+        run: databricks bundle run my_pipeline -t prod  # <-- UPDATE pipeline key
