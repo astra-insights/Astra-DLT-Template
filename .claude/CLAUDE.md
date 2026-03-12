@@ -164,6 +164,24 @@ This repo includes a skill template at `.claude/skills/pipeline-etl/SKILL.md`. A
 - **Add reference docs** in the `references/` subdirectories as you learn the data
 - The skill grows organically as the pipeline is built — it becomes the technical memory for this domain
 
+## Memory Bootstrap
+
+On the **first conversation** with a new analyst, initialize the Claude Code memory system using the seed files in `.claude/bootstrap/`. These contain org-level knowledge that every analyst's Claude should have from day one.
+
+**How to bootstrap:**
+1. Check if the memory system already exists (look for a `MEMORY.md` in your memory directory)
+2. If it does NOT exist, read each `.md` file in `.claude/bootstrap/` and save them as memory files
+3. Create a `MEMORY.md` index pointing to each memory file
+4. Also save a `user` memory with the analyst's name, role, and any preferences they mention
+
+The bootstrap files cover:
+- `org_databricks_conventions.md` — Column naming, catalog patterns, MCP usage
+- `org_team_and_contacts.md` — Team members and who to contact for what
+- `org_source_systems.md` — ERP systems, bronze catalog patterns, company abbreviations
+- `org_git_workflow.md` — Branch strategy, PR rules, deployment conventions
+
+**After bootstrapping**, continue to grow the memory system as you learn about the analyst's specific domain, preferences, and patterns — just like you would in any conversation.
+
 ## Key Resources
 
 | Resource | Description |
@@ -174,3 +192,4 @@ This repo includes a skill template at `.claude/skills/pipeline-etl/SKILL.md`. A
 | `Documentation/Transformations/` | Business-level docs per source system |
 | `Explorations/` | Validation and analysis notebooks |
 | `.claude/skills/pipeline-etl/SKILL.md` | Technical reference (grows as you build) |
+| `.claude/bootstrap/` | Seed memory files — org knowledge for first-time setup |
