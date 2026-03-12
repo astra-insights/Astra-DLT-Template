@@ -4,7 +4,7 @@ You are working in an Astra Insights Databricks DLT pipeline repository. This fi
 
 ## First-Time Setup
 
-When an analyst clones this repo and opens Claude Code for the first time, walk them through these steps:
+When an analyst clones this repo and opens Claude Code for the first time, walk them through these steps **in order**. Ask for information as needed — do not assume workspace URLs or catalog names.
 
 ### 1. Prerequisites
 
@@ -15,28 +15,37 @@ The analyst needs these installed before starting:
 - **Git** — for version control and bundle deployments
 - **GitHub CLI** (`gh`) — for PR workflows: `winget install GitHub.cli`
 
+> **Windows note:** `gh` may be installed but not on the Git bash PATH. If `gh` returns "command not found" in bash, try `"/c/Program Files/GitHub CLI/gh.exe"` or add it to PATH. The analyst can verify in PowerShell with `Get-Command gh`.
+
 ### 2. Databricks Authentication
 
-The analyst needs an access token for their Databricks workspace. Walk them through creating one:
+The analyst needs an access token for their Databricks workspace.
 
-**Ask the analyst for their workspace URL first.** It will look like `https://adb-XXXX.XX.azuredatabricks.net`.
+**IMPORTANT: Ask the analyst for their workspace URL first.** It will look like `https://adb-XXXX.XX.azuredatabricks.net`. Do NOT use any hardcoded URL — each analyst may have a different workspace.
+
+Some analysts have a **single workspace** for both dev and prod (with schema separation). Others have **separate workspaces**. Ask which setup they have.
 
 1. Log into their workspace URL
 2. Click your profile icon (top-right) → Settings → Developer → Access tokens
 3. Click "Generate new token", name it `claude-code`, set expiration (90 days recommended)
 4. Copy the token immediately (it won't be shown again)
 
-**Configure the Databricks CLI profile:**
+**Configure the Databricks CLI profile(s):**
+
+For a **single workspace** (most common for analysts):
 ```bash
-# Create or edit ~/.databrickscfg
 cat <<EOF >> ~/.databrickscfg
 [dev]
-host = <WORKSPACE_URL_HERE>
-token = <TOKEN_HERE>
+host = <THEIR_WORKSPACE_URL>
+token = <THEIR_TOKEN>
+
+[prod]
+host = <THEIR_WORKSPACE_URL>
+token = <THEIR_TOKEN>
 EOF
 ```
 
-If the analyst has separate dev and prod workspaces, add a `[prod]` profile the same way.
+For **separate workspaces**, create a profile for each with the appropriate URL and token.
 
 **Verify connection:**
 ```bash
@@ -47,27 +56,44 @@ databricks clusters list --profile dev
 ### 3. GitHub Authentication
 
 The analyst needs GitHub access to the `astra-insights` org:
-1. Ensure they have been added to the `astra-insights` GitHub organization
+1. Ensure they have been added to the `astra-insights` GitHub organization (contact Ryan or Marcus if not)
 2. Run `gh auth login` and follow the prompts (use HTTPS, authenticate via browser)
 3. Verify: `gh repo list astra-insights --limit 5`
 
 ### 4. Repository Setup
 
-After creating a repo from this template:
-1. **Rename the bundle** — update `bundle.name` in `databricks.yml` to match your repo name
-2. **Set workspace URLs** — update the `host` values in `databricks.yml` targets to match your workspace(s)
-3. **Update pipeline config** — edit `databricks.yml` with your pipeline name, catalog, and schema
-4. **Deploy to dev** — run `databricks bundle deploy --target dev` to verify the connection works
-5. **Set up GitHub secrets** — in the repo's GitHub Settings → Secrets → Actions:
-   - `DATABRICKS_TOKEN_DEV` — your workspace token
-   - If you have a separate prod workspace, add `DATABRICKS_TOKEN_PROD` too
-   - Create GitHub Environments (`dev`, and `prod` if applicable), assign the secrets to each
+After creating a repo from this template, **update these files with the analyst's actual values** (ask them if you don't know):
 
-### 5. VS Code Databricks Extension
+1. **`databricks.yml`** — This is the most important file. Update:
+   - `bundle.name` — match the repo name
+   - `host` values in both targets — use the workspace URL(s) from Step 2
+   - Pipeline name, catalog, and schema — ask the analyst what catalog their workspace uses
+   - Email recipients
+2. **`.github/workflows/deploy.yml`** — Update the workspace URLs in the `~/.databrickscfg` creation steps to match
+3. **Deploy to dev** — run `databricks bundle deploy --target dev` to verify everything connects
+4. **Set up GitHub secrets** — in the repo's GitHub Settings → Secrets → Actions:
+   - `DATABRICKS_TOKEN_DEV` — their dev workspace token
+   - `DATABRICKS_TOKEN_PROD` — their prod workspace token (may be the same token if single workspace)
+   - Create GitHub Environments (`dev`, `prod`) and assign the secrets to each
+
+### 5. Enable MCP Tools
+
+After auth is verified and `databricks auth profiles` shows valid profiles:
+1. Open `.claude/settings.json`
+2. Set `"disabled": false` for the MCP servers you want to enable
+3. Restart Claude Code — you should now be able to query Databricks directly
+
+### 6. VS Code Databricks Extension
 
 1. Open VS Code, go to the Databricks sidebar panel
 2. Click "Configure Databricks" and select the `dev` profile
 3. The extension will connect and allow you to browse catalogs, run notebooks, etc.
+
+### 7. Reference Repos (Optional)
+
+These repos are read-only references for the analyst. They do NOT need to clone them, but they can browse them on GitHub for patterns and examples:
+- **[Astra-Accounts-Receivable](https://github.com/astra-insights/Astra-Accounts-Receivable)** — Complete AR pipeline with multiple source systems (good reference for SQL patterns)
+- **[Astra-Accounts-Payable](https://github.com/astra-insights/Astra-Accounts-Payable)** — Complete AP pipeline (similar patterns, different domain)
 
 ## Repository Conventions
 
@@ -113,12 +139,16 @@ bronze_opco.{system}.{table}         {system}_{domain}_{type}            astra_{
 
 ## Catalogs
 
+**IMPORTANT: Catalog names vary by workspace.** Do NOT assume the catalogs below — check `databricks.yml` for the actual values configured for this repo. The standard Astra pattern is:
+
 | Environment | OpCo Catalog | Astra Catalog | Dimensions |
 |-------------|-------------|---------------|------------|
 | Dev | `silver_opco_dev` | `silver_astra_dev` | `dimensions` |
 | Prod | `silver_opco` | `silver_astra` | `dimensions` |
 
-Bronze catalogs are accessed via `bronze_opco.{system}.*` (shared across environments).
+However, some workspaces use a consolidated catalog (e.g., `astra_platform_databricks_prod`) for both OpCo and Astra layers. **Always refer to the `configuration` block in `databricks.yml`** for the correct `catalog_silver_opco` and `catalog_silver_astra` values.
+
+Bronze catalogs are typically accessed via `bronze_opco.{system}.*` but may differ by workspace. The analyst can verify by running `SHOW CATALOGS` in their workspace.
 
 ## MCP Tools
 

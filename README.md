@@ -4,15 +4,14 @@ A starter template for building Databricks DLT pipelines at Astra Insights. Clon
 
 ## Quick Start
 
-1. **Clone this template** — use the GitHub "Use this template" button or clone directly
-2. **Open in VS Code** with the Claude Code extension installed
-3. **Ask Claude** — open Claude Code and say: _"Help me set up this repo for my new pipeline"_
+1. **Create your repo** — click the green **"Use this template"** button above → **"Create a new repository"** under `astra-insights`
+2. **Clone it locally** and open in VS Code
+3. **Open Claude Code** and say: _"Help me set up this repo for my new pipeline"_
 
-Claude will walk you through:
-- Databricks authentication (dev + prod tokens)
-- GitHub secrets configuration
-- Renaming the pipeline config for your domain
-- Deploying your first bundle to dev
+Claude will walk you through everything. Here's what to have ready:
+- Your **Databricks workspace URL** (ask Ryan or Marcus if you don't know it)
+- Your **Databricks access token** (Claude will show you how to create one)
+- Access to the **astra-insights** GitHub org (ask Ryan if you haven't been invited)
 
 ## What's Included
 
@@ -69,8 +68,8 @@ The `Transformations/Astra/` folder contains append tables that UNION ALL the pe
 
 | Environment | Workspace | Catalog | Deployed Via |
 |-------------|-----------|---------|-------------|
-| Dev | Set in `databricks.yml` | `silver_astra_dev` / `silver_opco_dev` | `databricks bundle deploy -t dev` |
-| Prod | Set in `databricks.yml` | `silver_astra` / `silver_opco` | PR merge to `prod` (GitHub Actions) |
+| Dev | Set in `databricks.yml` | Set in `databricks.yml` | `databricks bundle deploy -t dev` |
+| Prod | Set in `databricks.yml` | Set in `databricks.yml` | PR merge to `prod` (GitHub Actions) |
 
 ## Branch Strategy
 

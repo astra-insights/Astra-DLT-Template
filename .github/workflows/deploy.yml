@@ -29,11 +29,12 @@ jobs:
 
       - name: Create Databricks CLI config
         run: |
-          cat <<EOF > ~/.databrickscfg
+          cat <<'HEREDOC' > ~/.databrickscfg
           [dev]
-          host = <DEV_WORKSPACE_URL>  # <-- UPDATE
+          host = <DEV_WORKSPACE_URL>
           token = ${{ secrets.DATABRICKS_TOKEN_DEV }}
-          EOF
+          HEREDOC
+          sed -i 's/^          //' ~/.databrickscfg
 
       - name: Deploy to Dev
         run: databricks bundle deploy -t dev
@@ -51,11 +52,12 @@ jobs:
 
       - name: Create Databricks CLI config
         run: |
-          cat <<EOF > ~/.databrickscfg
+          cat <<'HEREDOC' > ~/.databrickscfg
           [prod]
-          host = <PROD_WORKSPACE_URL>  # <-- UPDATE (or same as dev)
+          host = <PROD_WORKSPACE_URL>
           token = ${{ secrets.DATABRICKS_TOKEN_PROD }}
-          EOF
+          HEREDOC
+          sed -i 's/^          //' ~/.databrickscfg
 
       - name: Deploy to Prod
         run: databricks bundle deploy -t prod

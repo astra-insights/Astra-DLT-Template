@@ -28,7 +28,7 @@ resources:
       photon: true
       serverless: true
       continuous: false
-      development: false
+      development: true  # Set to true during active development for faster iteration and live table inspection. Set to false for production-like runs.
       channel: "CURRENT"
       configuration:
         "catalog_silver_opco": "silver_opco_dev"
