@@ -3,4 +3,5 @@
 .mcp.json
 .claude/settings.local.json
 .databricks/
-.vscode/
+.vscode/*
+!.vscode/extensions.json
