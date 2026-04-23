@@ -11,7 +11,8 @@ When an analyst clones this repo and opens Claude Code for the first time, walk 
 The analyst needs these installed before starting:
 - **VS Code** with the Databricks extension (`databricks.databricks`)
 - **Claude Code** VS Code extension
-- **Databricks CLI** — install via `pip install databricks-cli` or `winget install Databricks.DatabricksCLI`
+- **Databricks CLI v0.290+** — install via `pip install databricks-cli` or `winget install Databricks.DatabricksCLI`, then verify with `databricks --version`
+  - **Known issue on older versions:** CLI builds before v0.290 fail `databricks bundle deploy` with `error downloading Terraform: unable to verify checksums signature: openpgp: key expired`. Fix by running `winget upgrade Databricks.DatabricksCLI` (or reinstall via pip).
 - **Git** — for version control and bundle deployments
 - **GitHub CLI** (`gh`) — for PR workflows: `winget install GitHub.cli`
 
@@ -74,7 +75,15 @@ After creating a repo from this template, **update these files with the analyst'
 4. **Set up GitHub secrets** — in the repo's GitHub Settings → Secrets → Actions:
    - `DATABRICKS_TOKEN_DEV` — their dev workspace token
    - `DATABRICKS_TOKEN_PROD` — their prod workspace token (may be the same token if single workspace)
-   - Create GitHub Environments (`dev`, `prod`) and assign the secrets to each
+   - **Create GitHub Environments** (Settings → Environments → "New environment") named `dev` and `prod`. The `deploy.yml` workflow references `environment: dev` and `environment: prod` — if these don't exist, CI/CD runs will sit in "Waiting for approval" forever. Assign the secrets to each environment (or keep them as repo-level secrets if not using environment-specific protections).
+5. **If migrating existing non-DLT tables** — if this repo is replacing ad-hoc `CREATE OR REPLACE TABLE` statements that produced tables in the same target schema, you MUST `DROP TABLE` those existing tables before the first DLT deploy. DLT rejects any table it finds in its target schema that wasn't created by DLT, with the error `Could not materialize <table> because a MANAGED table already exists with that name`. Drop them via `DROP TABLE IF EXISTS <catalog>.<schema>.<table>` for each one, then re-run the pipeline.
+6. **(Optional) Git-integrated Workspace folder** — to make the SQL browseable directly in the Databricks workspace (useful for reviewers who shouldn't need GitHub access), create a Git-linked folder in the Helios-style `/Workspace/Shared/<repo-name>/` path:
+   ```bash
+   curl -s -X POST "https://${WORKSPACE_HOST}/api/2.0/repos" \
+     -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" \
+     -d '{"url":"https://github.com/astra-insights/<repo>.git","provider":"gitHub","path":"/Workspace/Shared/<repo-name>"}'
+   ```
+   Requires a one-time `POST /api/2.0/git-credentials` call to register the user's GitHub PAT. The folder auto-syncs when the analyst clicks "Pull" on the Repo; or automatically on scheduled intervals if configured.
 
 ### 5. Enable MCP Tools
 

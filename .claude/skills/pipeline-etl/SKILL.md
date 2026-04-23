@@ -138,6 +138,8 @@ select * from final
 - **Constraints**: Include data quality checks inline in the table definition
 - **tblproperties**: Always include quality, domain, source_system, and companies
 - **Amounts**: Always DECIMAL(18,2) — never FLOAT or DOUBLE for financial data
+- **Within-pipeline refs use `LIVE.<name>`**: When a table in this pipeline reads another table in the same pipeline, use `FROM LIVE.<table_name>` — DLT uses this to build the dependency DAG and orders the refresh correctly. A fully-qualified `FROM <catalog>.<schema>.<table>` technically works but DLT won't enforce ordering, which can cause a downstream table to read stale upstream data.
+- **External refs stay fully-qualified**: Tables NOT produced by this pipeline (manual uploads, reference/dimension tables, tables from another pipeline) must use their full `<catalog>.<schema>.<table>` path. Do NOT wrap them in `LIVE.*`.
 
 ## Source System Reference
 
