@@ -5,3 +5,6 @@
 .databricks/
 .vscode/*
 !.vscode/extensions.json
+
+# Claude review artifacts
+claude-review*.md
