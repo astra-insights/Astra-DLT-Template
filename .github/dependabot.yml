@@ -1,0 +1,14 @@
+version: 2
+updates:
+  # GitHub Actions — every repo with .github/workflows/* should have this
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "16:00"
+      timezone: "Etc/UTC"
+    groups:
+      actions:
+        patterns:
+          - "*"
