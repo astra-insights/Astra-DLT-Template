@@ -6,5 +6,5 @@
 .vscode/*
 !.vscode/extensions.json
 
-# Claude review artifacts
-claude-review*.md
+# Agent review artifacts (Claude, Codex, etc.)
+*-review-*.md
