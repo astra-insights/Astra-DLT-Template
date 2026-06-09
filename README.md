@@ -71,6 +71,12 @@ The `Transformations/Astra/` folder contains append tables that UNION ALL the pe
 | Dev | Set in `databricks.yml` | Set in `databricks.yml` | `databricks bundle deploy -t dev` |
 | Prod | Set in `databricks.yml` | Set in `databricks.yml` | PR merge to `prod` (GitHub Actions) |
 
+### Two supported dev/prod layouts
+
+The template ships a configuration that assumes **separate workspaces** for dev and prod (different `host` values per target). Many Astra OpCos have only a **single workspace**, with dev and prod distinguished by schema in the same catalog.
+
+For a single-workspace setup, edit both targets in `databricks.yml` to use the same `host` and `profile`, and change only the pipeline's `schema` (e.g., `foo_dev` for dev, `foo` for prod). Astra-Accounts-Payable uses the two-workspace pattern (`silver_astra_dev` vs `silver_astra`); Helios-HVACR uses the single-workspace pattern (`domo_migrations_dev` vs `domo_migrations` in the same catalog).
+
 ## Branch Strategy
 
 - **`prod`** is the primary branch (not `main`)
@@ -86,6 +92,16 @@ After cloning, update these files with your domain-specific values:
 - [ ] `.github/workflows/deploy.yml` — pipeline key in run commands (see `<-- UPDATE` comments)
 - [ ] `README.md` — replace this file with your domain's portfolio and architecture docs
 - [ ] `.claude/skills/pipeline-etl/SKILL.md` — update schemas if your domain differs from AR/AP pattern
+
+## Migrating Existing Tables Into DLT
+
+If you're adopting this template to replace ad-hoc `CREATE OR REPLACE TABLE` statements that already produced tables in your target schema, there are a few rewrites to do before your first DLT run:
+
+1. **Drop the catalog/schema prefix from the CREATE.** `CREATE OR REPLACE TABLE <catalog>.<schema>.<name>` becomes `CREATE OR REFRESH LIVE TABLE <name>` — DLT injects the target catalog/schema from `databricks.yml` automatically.
+2. **Rewrite within-pipeline cross-refs to `LIVE.<name>`.** If `foo.sql` reads from `bar` (also in this pipeline), use `FROM LIVE.bar`. The fully-qualified path works but DLT won't enforce DAG ordering, which causes stale reads.
+3. **Leave external refs fully-qualified.** Reference tables that are NOT produced by this pipeline (manual uploads, reference data, tables from another pipeline) should keep their full `<catalog>.<schema>.<table>` path.
+4. **DROP the existing tables before the first deploy.** DLT rejects any non-DLT-managed table already in its target schema with the error `Could not materialize <table> because a MANAGED table already exists with that name`. Run `DROP TABLE IF EXISTS <catalog>.<schema>.<table>` for each table your new pipeline will own, then trigger the pipeline.
+5. **Watch the library glob.** `libraries.glob.include: "./Transformations/**"` (with `**`) is the tested pattern. Narrower globs with `*.sql` are rejected by the bundle validator with `Special characters *?\ are reserved`. If you need to exclude files, move them out of `Transformations/` (e.g., into `Documentation/Deferred/`) rather than narrowing the glob.
 
 ## Example README
 

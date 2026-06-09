@@ -8,6 +8,19 @@
 #   4. schema               — your DLT schema name
 #   5. email_recipients     — your team's notification list
 #   6. quartz_cron_expression — your preferred schedule
+#
+# Two supported dev/prod layouts:
+#   A. SEPARATE WORKSPACES (default below)
+#      - Different `host` URLs per target (e.g., adb-dev.xx vs adb-prod.xx)
+#      - Different catalogs per target (e.g., silver_astra_dev vs silver_astra)
+#      - Used by: Astra-Accounts-Payable, Astra-Accounts-Receivable
+#
+#   B. SINGLE WORKSPACE, DEV/PROD SPLIT BY SCHEMA
+#      - Same `host` URL for both targets
+#      - Same catalog, different schema (e.g., foo_dev vs foo in the same catalog)
+#      - Used by: Helios-HVACR
+#      - To adopt: set dev + prod `host` to the same value and override only
+#        `schema` (and `catalog`, if needed) per target.
 # ============================================================================
 
 bundle:
